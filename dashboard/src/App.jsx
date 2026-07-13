@@ -1,17 +1,32 @@
+// import DriftChart from './charts/DriftChart'
+
+// function App() {
+//   return (
+//     <div className="p-8 bg-gray-50 min-h-screen">
+//       <h1 className="text-3xl font-bold text-blue-600 mb-6">CareBridge Dashboard</h1>
+//       <DriftChart />
+//     </div>
+//   )
+// }
+
+// export default App
+
 import DriftChart from './charts/DriftChart'
+import Roster from './pages/Roster'
 
 function App() {
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-blue-600 mb-6">CareBridge Dashboard</h1>
-      <DriftChart />
+      <Roster />
+      <div className="mt-6">
+        <DriftChart />
+      </div>
     </div>
   )
 }
 
 export default App
-
-
 // function App() {
 //   return (
 //     <div className="p-8">
