@@ -5,6 +5,7 @@ const { loadCareGroupContext } = require('../middleware/rbac');
 const { requireConsent, auditAccess } = require('../middleware/consentGate');
 const consentsRouter = require('./consents.routes');
 
+
 const router = express.Router();
 
 router.get('/:seniorId', authenticate, loadCareGroupContext, auditAccess('seniors'), async (req, res, next) => {

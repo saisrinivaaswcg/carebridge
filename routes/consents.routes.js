@@ -5,6 +5,7 @@ const { authenticate, requireRole } = require('../middleware/auth');
 const { loadCareGroupContext } = require('../middleware/rbac');
 const { auditAccess } = require('../middleware/consentGate');
 
+
 const router = express.Router({ mergeParams: true }); // mounted at /seniors/:seniorId/consents
 
 // GET /seniors/:seniorId/consents

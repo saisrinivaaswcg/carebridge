@@ -1,5 +1,6 @@
 const { query } = require('../config/db');
 
+
 /**
  * Blocks the request with 403 CONSENT_REQUIRED unless an active, non-expired
  * consent of `consentType` exists for :seniorId. This is the enforcement point
