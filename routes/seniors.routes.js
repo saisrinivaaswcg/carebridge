@@ -102,3 +102,37 @@ router.use('/:seniorId/consents', consentsRouter);
 //   /:seniorId/care-group/*   -> requireRole('senior','caseworker','admin') for writes
 
 module.exports = router;
+// [internal] POST /seniors/:seniorId/voice-notes — realtime-service registers voice note after S3 upload
+router.post(
+  '/:seniorId/voice-notes',
+  authenticate,
+  requireService('realtime-service'),
+  async (req, res, next) => {
+    try {
+      const { seniorId } = req.params;
+      const { s3_key, s3_bucket, duration_seconds, recorded_at } = req.body;
+
+      if (!s3_key || !s3_bucket || !duration_seconds || !recorded_at) {
+        return res.status(400).json({
+          error: { code: 'VALIDATION_ERROR', message: 'Missing required fields: s3_key, s3_bucket, duration_seconds, recorded_at' },
+        });
+      }
+
+      const seniorCheck = await query('SELECT id FROM seniors WHERE id = $1', [seniorId]);
+      if (seniorCheck.rowCount === 0) {
+        return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Senior not found' } });
+      }
+
+      const result = await query(
+        `INSERT INTO voice_notes (senior_id, s3_key, s3_bucket, duration_seconds, recorded_at)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, senior_id, s3_key, s3_bucket, duration_seconds, recorded_at, created_at`,
+        [seniorId, s3_key, s3_bucket, duration_seconds, recorded_at]
+      );
+
+      res.status(201).json({ data: result.rows[0] });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
