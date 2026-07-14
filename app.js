@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/auth.routes');
 const seniorsRoutes = require('./routes/seniors.routes');
+const consentsRoutes = require('./routes/consents.routes');
 
 const app = express();
 

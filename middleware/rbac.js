@@ -1,5 +1,6 @@
 const { query } = require('../config/db');
 
+
 /**
  * Loads the requesting user's relationship to :seniorId (from care_group_members,
  * or the fact that they ARE the senior) and attaches it as req.careGroupMembership.
