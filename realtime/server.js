@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 // save message to Person 3's database
 async function saveMessageToKavi(seniorId, direction, text) {
     try {
-        const response = await fetch(`${KAVI_API_URL}/seniors/${seniorId}/messages`, {
+        const response = await fetch(`${KAVI_API_URL}/api/v1/seniors/${seniorId}/messages`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -45,7 +45,7 @@ async function saveMessageToKavi(seniorId, direction, text) {
 // register voice note with Person 3 after S3 upload
 async function saveVoiceNoteToKavi(seniorId, s3Key, durationSec) {
     try {
-        const response = await fetch(`${KAVI_API_URL}/seniors/${seniorId}/voice-notes`, {
+        const response = await fetch(`${KAVI_API_URL}/api/v1/seniors/${seniorId}/voice-notes`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
