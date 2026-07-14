@@ -1,6 +1,6 @@
 const express = require('express');
 const { query } = require('../config/db');
-const { authenticate, requireRole } = require('../middleware/auth');
+const { authenticate, requireRole, requireService } = require('../middleware/auth');
 const { loadCareGroupContext } = require('../middleware/rbac');
 const { requireConsent, auditAccess } = require('../middleware/consentGate');
 const consentsRouter = require('./consents.routes');
@@ -49,6 +49,43 @@ router.get(
         next_cursor: hasMore ? result.rows[result.rows.length - 1].sent_at : null,
         has_more: hasMore,
       });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// [internal] POST /seniors/:seniorId/messages — realtime-service ingests inbound/outbound text
+router.post(
+  '/:seniorId/messages',
+  authenticate,
+  requireService('realtime-service'),
+  async (req, res, next) => {
+    try {
+      const { seniorId } = req.params;
+      const { direction, channel, content_text, sent_at } = req.body;
+
+      // Basic validation
+      if (!direction || !channel || !content_text || !sent_at) {
+        return res.status(400).json({
+          error: { code: 'VALIDATION_ERROR', message: 'Missing required fields: direction, channel, content_text, sent_at' },
+        });
+      }
+
+      // Verify the senior exists
+      const seniorCheck = await query('SELECT id FROM seniors WHERE id = $1', [seniorId]);
+      if (seniorCheck.rowCount === 0) {
+        return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Senior not found' } });
+      }
+
+      const result = await query(
+        `INSERT INTO messages (senior_id, direction, channel, content_text, sent_at)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, senior_id, direction, channel, content_text, sent_at, created_at`,
+        [seniorId, direction, channel, content_text, sent_at]
+      );
+
+      res.status(201).json({ data: result.rows[0] });
     } catch (err) {
       next(err);
     }
