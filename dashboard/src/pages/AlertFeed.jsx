@@ -1,4 +1,5 @@
 import { mockAlerts } from '../data/mockAlerts'
+import { mockSeniors } from '../data/mockSeniors'
 
 const tierStyle = {
   critical: { bg: 'bg-red-50', border: 'border-red-500', badge: 'bg-red-100 text-red-600', label: 'CRITICAL', icon: '⚠️' },
@@ -7,12 +8,27 @@ const tierStyle = {
 
 function AlertFeed({ setCurrentPage, setSelectedSenior }) {
   const openProfile = (seniorId) => {
-    const senior = mockAlerts.find(a => a.seniorId === seniorId)
+    const senior = mockSeniors.find(s => s.id === seniorId)
     if (senior) {
-      setSelectedSenior({ id: senior.seniorId })
+      setSelectedSenior(senior)
       setCurrentPage('profile')
     }
   }
+
+  const handleAction = (alertItem) => {
+    const senior = mockSeniors.find(s => s.id === alertItem.seniorId)
+    if (alertItem.action === 'Call Family') {
+      if (senior?.contact) {
+        window.alert(`Calling family contact:\n${senior.contact}`)
+      } else {
+        window.alert('No family contact on file for this senior.')
+      }
+    } else if (alertItem.action === 'Schedule Visit') {
+      window.alert(`Visit scheduling request sent for ${senior?.name || alertItem.name}.`)
+    }
+  }
+
+
 
   return (
     <div className="p-8">
@@ -45,12 +61,26 @@ function AlertFeed({ setCurrentPage, setSelectedSenior }) {
                 <span className="text-gray-400 text-sm ml-auto">{a.time}</span>
               </div>
               <p className="text-gray-700">{a.message}</p>
-              <button
+              {/* <button
                 onClick={() => openProfile(a.seniorId)}
                 className="text-teal-700 font-medium text-sm mt-2 hover:underline"
               >
                 {a.action} →
-              </button>
+              </button> */}
+              <div className="flex items-center gap-4 mt-2">
+  <button
+    onClick={() => handleAction(a)}
+    className="text-teal-700 font-medium text-sm hover:underline"
+  >
+    {a.action} →
+  </button>
+  <button
+    onClick={() => openProfile(a.seniorId)}
+    className="text-gray-500 text-sm hover:underline"
+  >
+    View Profile
+  </button>
+</div>
             </div>
           )
         })}
