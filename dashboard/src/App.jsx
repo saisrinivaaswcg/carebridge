@@ -45,7 +45,8 @@ function App() {
           <AlertFeed setCurrentPage={setCurrentPage} setSelectedSenior={setSelectedSenior} />
         )}
         {currentPage === 'profile' && selectedSenior && (
-          <SeniorProfile senior={selectedSenior} />
+       //   <SeniorProfile senior={selectedSenior} />
+       <SeniorProfile senior={selectedSenior} setCurrentPage={setCurrentPage} />
         )}
       </div>
     </div>
