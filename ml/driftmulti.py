@@ -1,34 +1,60 @@
-import numpy as np
+from baseline import calculate_baseline, calculate_zscore
 
-# Historical behaviour
-speech_rates = [100,105,98,102,107]
-message_counts = [10,12,11,9,13]
-sentiments = [0.2,0.1,0.3,0.2,0.1]
+def calculate_risk(current_features, history):
+    if len(history) < 3:
+        return {
+            "risk_score": 0,
+            "alert_tier": "none",
+            "confidence": "low",
+            "reason": "Not enough history to detect drift yet"
+        }
 
-# Today's values
-current_speech = 80
-current_messages = 5
-current_sentiment = -0.4
+    # extract history lists for each feature
+    word_counts = [h["word_count"] for h in history]
+    lexical_diversities = [h["lexical_diversity"] for h in history]
+    sentiments = [h["sentiment_score"] for h in history]
 
-speech_z = (current_speech - np.mean(speech_rates)) / np.std(speech_rates)
-message_z = (current_messages - np.mean(message_counts)) / np.std(message_counts)
-sentiment_z = (current_sentiment - np.mean(sentiments)) / np.std(sentiments)
+    # calculate baselines for each feature
+    word_baseline = calculate_baseline(word_counts)
+    lexical_baseline = calculate_baseline(lexical_diversities)
+    sentiment_baseline = calculate_baseline(sentiments)
 
-print("Speech Z:", speech_z)
-print("Message Z:", message_z)
-print("Sentiment Z:", sentiment_z)
+    # calculate z-scores — how far is today from normal?
+    word_z = calculate_zscore(current_features["word_count"], word_baseline)
+    lexical_z = calculate_zscore(current_features["lexical_diversity"], lexical_baseline)
+    sentiment_z = calculate_zscore(current_features["sentiment_score"], sentiment_baseline)
 
-risk_score = (
-    abs(speech_z)
-    + abs(message_z)
-    + abs(sentiment_z)
-)
+    # combine into one risk score
+    z_scores = [z for z in [word_z, lexical_z, sentiment_z] if z is not None]
+    if not z_scores:
+        risk_score = 0
+    else:
+        risk_score = round(sum(abs(z) for z in z_scores), 2)
 
-print("Risk Score:", round(risk_score, 2))
+    # determine alert tier
+    if risk_score > 6:
+        alert_tier = "high"
+    elif risk_score > 3:
+        alert_tier = "medium"
+    else:
+        alert_tier = "low"
 
-if risk_score > 8:
-    print("🔴 HIGH ALERT")
-elif risk_score > 4:
-    print("🟡 MODERATE ALERT")
-else:
-    print("🟢 NORMAL")
+    # confidence based on how much history we have
+    sample_count = len(history)
+    if sample_count >= 30:
+        confidence = "high"
+    elif sample_count >= 10:
+        confidence = "medium"
+    else:
+        confidence = "low"
+
+    return {
+        "risk_score": risk_score,
+        "alert_tier": alert_tier,
+        "confidence": confidence,
+        "z_scores": {
+            "word_count": word_z,
+            "lexical_diversity": lexical_z,
+            "sentiment": sentiment_z
+        }
+    }
