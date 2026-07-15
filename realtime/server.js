@@ -73,6 +73,23 @@ app.post("/messages", async (req, res) => {
     res.json(saved);
 });
 
+app.get("/messages", async (req, res) => {
+    const { seniorId } = req.query;
+    try {
+        const response = await fetch(
+            `${KAVI_API_URL}/api/v1/seniors/${seniorId}/messages`,
+            {
+                headers: { "X-Service-Key": SERVICE_API_KEY },
+            }
+        );
+        const data = await response.json();
+        res.json(data.data || []);
+    } catch (error) {
+        console.error("Failed to fetch messages:", error);
+        res.json([]);
+    }
+});
+
 app.post("/voice/upload-url", async (req, res) => {
     const { seniorId } = req.body;
     const { url, key } = await getUploadUrl(seniorId);
