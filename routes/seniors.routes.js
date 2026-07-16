@@ -23,8 +23,35 @@ router.get('/:seniorId', authenticate, loadCareGroupContext, auditAccess('senior
   }
 });
 
+// GET /seniors — caseworker sees list of all their seniors
+router.get(
+  '/',
+  authenticate,
+  async (req, res, next) => {
+    try {
+      const result = await query(
+        `SELECT s.id, u.full_name, u.preferred_language,
+                s.date_of_birth, s.onboarding_status,
+                s.baseline_established_at,
+                (SELECT COUNT(*) FROM alerts a 
+                 WHERE a.senior_id = s.id 
+                 AND a.status = 'open') as open_alert_count
+         FROM seniors s
+         JOIN users u ON u.id = s.id
+         WHERE u.is_active = true
+         ORDER BY u.full_name ASC`,
+        []
+      );
+      res.status(200).json({ data: result.rows });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 // Example of the consent-gated read pattern every other content route should follow:
 // authenticate -> loadCareGroupContext -> requireConsent(<type>) -> auditAccess(<resource>) -> handler
+
 router.get(
   '/:seniorId/messages',
   authenticate,
