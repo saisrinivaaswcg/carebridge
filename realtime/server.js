@@ -66,6 +66,25 @@ async function saveVoiceNoteToKavi(seniorId, s3Key, durationSec) {
     }
 }
 
+// send transcript to ML service for analysis
+async function analyseWithML(seniorId, transcript) {
+    try {
+        const response = await fetch(`${process.env.ML_SERVICE_URL}/analyse_user`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                user_id: seniorId,
+                transcript: transcript,
+            }),
+        });
+        const result = await response.json();
+        console.log("ML analysis result:", result);
+        return result;
+    } catch (error) {
+        console.error("ML service call failed:", error);
+        return null;
+    }
+}
 app.post("/messages", async (req, res) => {
     const { seniorId, direction, text } = req.body;
     console.log("New message from senior:", seniorId);
@@ -117,12 +136,24 @@ io.on("connection", (socket) => {
     });
 
     socket.on("send_message", async (data) => {
-        console.log("Message received:", data);
-        // save to Person 3's DB
-        await saveMessageToKavi(data.room, "inbound", data.text);
-        // broadcast to everyone in the room
-        io.to(data.room).emit("receive_message", data);
+    console.log("Message received:", data);
+    // save to Person 3's DB
+    await saveMessageToKavi(data.room, "inbound", data.text);
+    // broadcast to everyone in the room
+    io.to(data.room).emit("receive_message", data);
+    // analyse with ML in background
+    analyseWithML(data.room, data.text).then((result) => {
+        if (result && result.alert_tier && result.alert_tier !== "none" && result.alert_tier !== "low") {
+            console.log("Alert triggered for senior:", data.room, "tier:", result.alert_tier);
+            io.to(data.room).emit("alert", {
+                seniorId: data.room,
+                tier: result.alert_tier,
+                riskScore: result.risk_score,
+                confidence: result.confidence
+            });
+        }
     });
+});
 
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);

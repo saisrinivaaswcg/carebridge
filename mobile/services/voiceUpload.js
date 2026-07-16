@@ -1,4 +1,4 @@
-const SERVER_URL = "http://192.168.1.103:3000";
+import { SERVER_URL } from "../config";
 
 export async function uploadVoiceNote(localUri, seniorId) {
   try {

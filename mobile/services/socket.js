@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const SERVER_URL = "http://192.168.1.103:3000";
+import { SERVER_URL } from "../config";
 
 let socket = null;
 
