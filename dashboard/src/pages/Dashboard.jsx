@@ -1,4 +1,5 @@
-import { mockSeniors } from '../data/mockSeniors'
+import { useEffect, useState } from 'react'
+import { getSeniors } from '../utils/api'
 
 const tierBadge = {
   critical: { label: 'Critical', style: 'bg-red-100 text-red-600' },
@@ -11,12 +12,55 @@ const barColor = {
   stable: 'bg-green-400',
 }
 
+function getInitials(name = '') {
+  return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+}
+function getAge(dob) {
+  if (!dob) return null
+  const diff = Date.now() - new Date(dob).getTime()
+  return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000))
+}
+// TEMP: until ML service exposes real score/drift, derive a rough tier from open_alert_count
+function deriveTier(openAlertCount) {
+  if (openAlertCount >= 2) return 'critical'
+  if (openAlertCount === 1) return 'watch'
+  return 'stable'
+}
+function adaptSenior(s) {
+  return {
+    id: s.id,
+    name: s.full_name,
+    initials: getInitials(s.full_name),
+    age: getAge(s.date_of_birth),
+    tier: deriveTier(s.open_alert_count),
+    unread: s.open_alert_count,
+    drift: 0,           // placeholder until ML endpoint exists
+    score: null,
+    baseline: null,
+    lastActive: '—',    // placeholder until last message timestamp is included
+  }
+}
+
 function Dashboard({ setCurrentPage, setSelectedSenior }) {
-  const total = mockSeniors.length
-  const needAttention = mockSeniors.filter(s => s.tier !== 'stable').length
-  const critical = mockSeniors.filter(s => s.tier === 'critical').length
-  const watch = mockSeniors.filter(s => s.tier === 'watch').length
-  const unread = mockSeniors.reduce((sum, s) => sum + s.unread, 0)
+  const [seniors, setSeniors] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    getSeniors()
+      .then(res => setSeniors(res.data.map(adaptSenior)))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div className="p-8 text-gray-400">Loading seniors…</div>
+  if (error) return <div className="p-8 text-red-600">Couldn't load seniors: {error}</div>
+
+  const total = seniors.length
+  const needAttention = seniors.filter(s => s.tier !== 'stable').length
+  const critical = seniors.filter(s => s.tier === 'critical').length
+  const watch = seniors.filter(s => s.tier === 'watch').length
+  const unread = seniors.reduce((sum, s) => sum + s.unread, 0)
 
   const openProfile = (senior) => {
     setSelectedSenior(senior)
@@ -26,7 +70,7 @@ function Dashboard({ setCurrentPage, setSelectedSenior }) {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold text-gray-900">My Seniors</h1>
-      <p className="text-gray-500 mt-1">{total} under your care · Monday, 13 July 2026</p>
+      <p className="text-gray-500 mt-1">{total} under your care</p>
 
       <div className="grid grid-cols-3 gap-4 mt-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
@@ -47,7 +91,7 @@ function Dashboard({ setCurrentPage, setSelectedSenior }) {
       </div>
 
       <div className="mt-6 space-y-4">
-        {mockSeniors.map((s) => {
+        {seniors.map((s) => {
           const badge = tierBadge[s.tier]
           return (
             <button
@@ -61,7 +105,7 @@ function Dashboard({ setCurrentPage, setSelectedSenior }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold text-gray-900">{s.name}</span>
-                  <span className="text-gray-400 text-sm">Age {s.age}</span>
+                  <span className="text-gray-400 text-sm">Age {s.age ?? '—'}</span>
                   {s.tier !== 'stable' && (
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badge.style}`}>
                       ● {badge.label}
@@ -82,9 +126,7 @@ function Dashboard({ setCurrentPage, setSelectedSenior }) {
                 </div>
               </div>
               <div className="text-right text-sm flex-shrink-0">
-                <div className="font-medium text-gray-700">{s.drift}%</div>
                 <div className="text-gray-400 mt-1">{s.lastActive}</div>
-                <div className="text-gray-400">{s.score} / {s.baseline}</div>
               </div>
               <span className="text-gray-300">›</span>
             </button>

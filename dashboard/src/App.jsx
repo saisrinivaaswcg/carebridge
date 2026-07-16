@@ -17,12 +17,19 @@ function App() {
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      <Sidebar
+      {/* <Sidebar
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         selectedSenior={selectedSenior}
         setSelectedSenior={setSelectedSenior}
-      />
+      /> */}
+      <Sidebar
+  currentPage={currentPage}
+  setCurrentPage={setCurrentPage}
+  selectedSenior={selectedSenior}
+  setSelectedSenior={setSelectedSenior}
+  user={user}
+/>
       <div className="flex-1">
         {currentPage === 'dashboard' && (
           <Dashboard setCurrentPage={setCurrentPage} setSelectedSenior={setSelectedSenior} />
