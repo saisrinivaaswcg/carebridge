@@ -7,12 +7,19 @@ import {
 } from "react-native";
 import { Audio } from "expo-av";
 
-export default function VoiceRecorder({ onRecordingFinished }) {
+import { getToken, getUser } from "../services/auth";
+import { uploadVoiceNote } from "../services/voiceUpload";
+
+export default function VoiceRecorder({
+  onRecordingFinished,
+}) {
   const [recording, setRecording] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   async function startRecording() {
     try {
-      const permission = await Audio.requestPermissionsAsync();
+      const permission =
+        await Audio.requestPermissionsAsync();
 
       if (!permission.granted) {
         Alert.alert(
@@ -36,6 +43,7 @@ export default function VoiceRecorder({ onRecordingFinished }) {
 
     } catch (error) {
       console.log(error);
+
       Alert.alert(
         "Error",
         "Unable to start recording."
@@ -51,18 +59,40 @@ export default function VoiceRecorder({ onRecordingFinished }) {
 
       const uri = recording.getURI();
 
-      if (onRecordingFinished && uri) {
-        onRecordingFinished(uri);
+      setRecording(null);
+
+      if (!uri) return;
+
+      setUploading(true);
+
+      const token = await getToken();
+      const user = await getUser();
+
+      const response = await uploadVoiceNote({
+        uri,
+        token,
+        seniorId: user.id,
+      });
+
+      if (onRecordingFinished) {
+        onRecordingFinished(response);
       }
 
-      setRecording(null);
+      Alert.alert(
+        "Success",
+        "Voice note uploaded."
+      );
 
     } catch (error) {
       console.log(error);
+
       Alert.alert(
-        "Error",
-        "Unable to stop recording."
+        "Upload Failed",
+        error.message || "Unable to upload voice note."
       );
+
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -72,6 +102,7 @@ export default function VoiceRecorder({ onRecordingFinished }) {
         styles.button,
         recording && styles.recordingButton,
       ]}
+      disabled={uploading}
       onPress={
         recording
           ? stopRecording
@@ -79,7 +110,9 @@ export default function VoiceRecorder({ onRecordingFinished }) {
       }
     >
       <Text style={styles.text}>
-        {recording
+        {uploading
+          ? "Uploading..."
+          : recording
           ? "⏹ Stop Recording"
           : "🎤 Record Voice"}
       </Text>
