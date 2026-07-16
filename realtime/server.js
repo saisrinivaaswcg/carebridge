@@ -85,6 +85,31 @@ async function analyseWithML(seniorId, transcript) {
         return null;
     }
 }
+// create alert in Person 3's database
+async function createAlert(seniorId, alertType, severity, description) {
+    try {
+        const response = await fetch(`${KAVI_API_URL}/api/v1/alerts`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Service-Key": process.env.ML_SERVICE_KEY,
+            },
+            body: JSON.stringify({
+                senior_id: seniorId,
+                alert_type: alertType,
+                severity: severity,
+                description: description,
+                source: "ml_service",
+                detected_at: new Date().toISOString(),
+            }),
+        });
+        const data = await response.json();
+        console.log("Alert created:", data);
+        return data;
+    } catch (error) {
+        console.error("Failed to create alert:", error);
+    }
+}
 app.post("/messages", async (req, res) => {
     const { seniorId, direction, text } = req.body;
     console.log("New message from senior:", seniorId);
@@ -142,17 +167,27 @@ io.on("connection", (socket) => {
     // broadcast to everyone in the room
     io.to(data.room).emit("receive_message", data);
     // analyse with ML in background
-    analyseWithML(data.room, data.text).then((result) => {
-        if (result && result.alert_tier && result.alert_tier !== "none" && result.alert_tier !== "low") {
-            console.log("Alert triggered for senior:", data.room, "tier:", result.alert_tier);
-            io.to(data.room).emit("alert", {
-                seniorId: data.room,
-                tier: result.alert_tier,
-                riskScore: result.risk_score,
-                confidence: result.confidence
-            });
-        }
-    });
+   analyseWithML(data.room, data.text).then(async (result) => {
+    if (result && result.alert_tier && result.alert_tier !== "none" && result.alert_tier !== "low") {
+        console.log("Alert triggered for senior:", data.room, "tier:", result.alert_tier);
+
+        // save alert to PostgreSQL
+        await createAlert(
+            data.room,
+            "sentiment_shift",
+            result.alert_tier,
+            `Communication pattern has shifted from personal baseline. Risk score: ${result.risk_score}. Confidence: ${result.confidence}.`
+        );
+
+        // push alert to connected family/caseworkers
+        io.to(data.room).emit("alert", {
+            seniorId: data.room,
+            tier: result.alert_tier,
+            riskScore: result.risk_score,
+            confidence: result.confidence
+        });
+    }
+});
 });
 
     socket.on("disconnect", () => {
