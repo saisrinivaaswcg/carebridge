@@ -11,43 +11,82 @@ export default function SignupScreen({ navigation }) {
   return (
     <View style={styles.container}>
 
-      <Text style={styles.title}>Create Account</Text>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+        accessibilityHint="Return to the Welcome screen"
+      >
+        <Text style={styles.backButtonText}>
+          ← Back
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={styles.title}>
+        Create Account
+      </Text>
+
+      <Text style={styles.subtitle}>
+        Create your CareBridge account to stay connected with your loved ones.
+      </Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Full Name"
+        placeholder="Enter your full name"
+        accessibilityLabel="Full Name"
+        accessibilityHint="Enter your full name"
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Email Address"
+        placeholder="Enter your email address"
         keyboardType="email-address"
+        autoCapitalize="none"
+        accessibilityLabel="Email Address"
+        accessibilityHint="Enter your email address"
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Create a password"
         secureTextEntry
+        accessibilityLabel="Password"
+        accessibilityHint="Create a secure password"
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Confirm Password"
+        placeholder="Confirm your password"
         secureTextEntry
+        accessibilityLabel="Confirm Password"
+        accessibilityHint="Re-enter your password"
       />
 
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("Onboarding")}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Create Account"
+        accessibilityHint="Create your CareBridge account"
       >
-        <Text style={styles.buttonText}>Create Account</Text>
+        <Text style={styles.buttonText}>
+          Create Account
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.backButton}
+        style={styles.secondaryButton}
         onPress={() => navigation.goBack()}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Back to Welcome"
+        accessibilityHint="Return to the Welcome screen"
       >
-        <Text style={styles.backButtonText}>← Back to Welcome</Text>
+        <Text style={styles.secondaryButtonText}>
+          Back to Welcome
+        </Text>
       </TouchableOpacity>
 
     </View>
@@ -58,9 +97,16 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
-    padding: 25,
+    paddingHorizontal: 25,
+  },
+
+  backButtonText: {
+    color: "#2563EB",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 30,
   },
 
   title: {
@@ -68,38 +114,47 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#2563EB",
     textAlign: "center",
+  },
+
+  subtitle: {
+    fontSize: 18,
+    color: "#6B7280",
+    textAlign: "center",
+    marginTop: 15,
     marginBottom: 40,
+    lineHeight: 26,
   },
 
   input: {
     borderWidth: 1,
     borderColor: "#D1D5DB",
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 18,
     fontSize: 20,
     marginBottom: 20,
+    backgroundColor: "#FFFFFF",
   },
 
   button: {
     backgroundColor: "#2563EB",
     padding: 18,
-    borderRadius: 12,
+    borderRadius: 14,
     marginTop: 10,
   },
 
   buttonText: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 22,
     textAlign: "center",
     fontWeight: "bold",
   },
 
-  backButton: {
-    marginTop: 20,
+  secondaryButton: {
+    marginTop: 25,
     alignItems: "center",
   },
 
-  backButtonText: {
+  secondaryButtonText: {
     color: "#2563EB",
     fontSize: 20,
     fontWeight: "bold",

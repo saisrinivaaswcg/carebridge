@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   SafeAreaView,
-  View,
   Text,
   TouchableOpacity,
   StyleSheet,
@@ -11,34 +10,56 @@ import {
 export default function CheckInScreen({ navigation }) {
   const [selectedMood, setSelectedMood] = useState("");
 
+  const moods = [
+    {
+      emoji: "😀",
+      title: "Great",
+      description: "I feel energetic and happy today.",
+    },
+    {
+      emoji: "🙂",
+      title: "Good",
+      description: "I am doing well today.",
+    },
+    {
+      emoji: "😐",
+      title: "Okay",
+      description: "I feel alright, nothing unusual.",
+    },
+    {
+      emoji: "☹️",
+      title: "Not Good",
+      description: "I would like some support today.",
+    },
+  ];
+
   function submitCheckIn() {
     if (!selectedMood) {
       Alert.alert(
-        "Please select a mood",
-        "Choose how you're feeling today."
+        "Please Select a Mood",
+        "Choose how you're feeling before submitting."
       );
       return;
     }
 
     Alert.alert(
       "Check-In Complete",
-      `You selected: ${selectedMood}`
+      `Thank you for checking in today.\n\nYou selected: ${selectedMood}`
     );
 
     navigation.goBack();
   }
 
-  const moods = [
-    "😀 Great",
-    "🙂 Good",
-    "😐 Okay",
-    "☹️ Not Good",
-  ];
-
   return (
     <SafeAreaView style={styles.container}>
 
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+        accessibilityHint="Returns to the previous screen"
+      >
         <Text style={styles.back}>← Back</Text>
       </TouchableOpacity>
 
@@ -50,23 +71,43 @@ export default function CheckInScreen({ navigation }) {
         How are you feeling today?
       </Text>
 
+      <Text style={styles.description}>
+        Your response helps your family better understand how you're doing today.
+      </Text>
+
       {moods.map((mood) => (
         <TouchableOpacity
-          key={mood}
+          key={mood.title}
           style={[
             styles.option,
-            selectedMood === mood && styles.selectedOption,
+            selectedMood === mood.title &&
+              styles.selectedOption,
           ]}
-          onPress={() => setSelectedMood(mood)}
+          onPress={() => setSelectedMood(mood.title)}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={`Select ${mood.title}`}
+          accessibilityHint={mood.description}
         >
           <Text
             style={[
-              styles.optionText,
-              selectedMood === mood &&
+              styles.optionTitle,
+              selectedMood === mood.title &&
                 styles.selectedText,
             ]}
           >
-            {mood}
+            {selectedMood === mood.title ? "✓ " : ""}
+            {mood.emoji} {mood.title}
+          </Text>
+
+          <Text
+            style={[
+              styles.optionDescription,
+              selectedMood === mood.title &&
+                styles.selectedDescription,
+            ]}
+          >
+            {mood.description}
           </Text>
         </TouchableOpacity>
       ))}
@@ -74,6 +115,10 @@ export default function CheckInScreen({ navigation }) {
       <TouchableOpacity
         style={styles.button}
         onPress={submitCheckIn}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Submit daily check-in"
+        accessibilityHint="Saves today's wellbeing check-in"
       >
         <Text style={styles.buttonText}>
           Submit Check-In
@@ -107,15 +152,23 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    fontSize: 20,
-    color: "#666",
-    marginBottom: 30,
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 10,
+  },
+
+  description: {
+    fontSize: 18,
+    color: "#6B7280",
+    lineHeight: 26,
+    marginBottom: 25,
   },
 
   option: {
     backgroundColor: "#F3F4F6",
     padding: 20,
-    borderRadius: 15,
+    borderRadius: 16,
     marginBottom: 15,
   },
 
@@ -123,20 +176,32 @@ const styles = StyleSheet.create({
     backgroundColor: "#2563EB",
   },
 
-  optionText: {
+  optionTitle: {
     fontSize: 22,
+    fontWeight: "bold",
+    color: "#111827",
+    marginBottom: 6,
+  },
+
+  optionDescription: {
+    fontSize: 17,
+    color: "#6B7280",
+    lineHeight: 24,
   },
 
   selectedText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+  },
+
+  selectedDescription: {
+    color: "#E5E7EB",
   },
 
   button: {
     backgroundColor: "#2563EB",
     padding: 18,
     borderRadius: 15,
-    marginTop: 30,
+    marginTop: 25,
   },
 
   buttonText: {

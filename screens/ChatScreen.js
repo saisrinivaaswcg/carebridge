@@ -70,6 +70,10 @@ export default function ChatScreen({ navigation }) {
 
         <TouchableOpacity
           onPress={() => navigation.goBack()}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          accessibilityHint="Returns to the Home screen"
         >
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
@@ -79,42 +83,65 @@ export default function ChatScreen({ navigation }) {
         </Text>
 
         <Text style={styles.headerSubtitle}>
-          CareBridge
+          Stay connected with your loved ones through messages and voice notes.
         </Text>
 
       </View>
 
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ChatBubble message={item} />
-        )}
-        contentContainerStyle={{
-          paddingVertical: 15,
-          paddingBottom: 20,
-        }}
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-        onLayout={() =>
-          flatListRef.current?.scrollToEnd({ animated: false })
-        }
+      {messages.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>
+            No messages yet
+          </Text>
+
+          <Text style={styles.emptySubtitle}>
+            Start a conversation with your family by sending a message or a voice note.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ChatBubble message={item} />
+          )}
+          contentContainerStyle={{
+            paddingVertical: 15,
+            paddingBottom: 20,
+          }}
+          accessibilityLabel="Family chat messages"
+          accessibilityHint="Displays your conversation with family members"
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({
+              animated: true,
+            })
+          }
+          onLayout={() =>
+            flatListRef.current?.scrollToEnd({
+              animated: false,
+            })
+          }
+        />
+      )}
+
+      <VoiceRecorder
+        onRecordingFinished={addVoiceMessage}
       />
 
-      <VoiceRecorder onRecordingFinished={addVoiceMessage} />
-
-      <MessageInput onSend={sendMessage} />
+      <MessageInput
+        onSend={sendMessage}
+      />
 
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
   },
 
   header: {
@@ -123,21 +150,45 @@ const styles = StyleSheet.create({
   },
 
   back: {
-    color: "#fff",
-    fontSize: 18,
+    color: "#FFFFFF",
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
   },
 
   headerTitle: {
-    color: "white",
-    fontSize: 26,
+    color: "#FFFFFF",
+    fontSize: 28,
     fontWeight: "bold",
   },
 
   headerSubtitle: {
     color: "#E5E7EB",
-    marginTop: 3,
-    fontSize: 16,
+    fontSize: 17,
+    marginTop: 8,
+    lineHeight: 24,
   },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 30,
+  },
+
+  emptyTitle: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#2563EB",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+
+  emptySubtitle: {
+    fontSize: 18,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 28,
+  },
+
 });

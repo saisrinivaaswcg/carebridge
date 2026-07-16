@@ -1,50 +1,82 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function WelcomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>❤️</Text>
 
-      <Text style={styles.title}>CareBridge</Text>
+      <Text
+        style={styles.logo}
+        accessible={true}
+        accessibilityLabel="CareBridge logo"
+      >
+        ❤️
+      </Text>
+
+      <Text style={styles.title}>
+        CareBridge
+      </Text>
 
       <Text style={styles.subtitle}>
-        Stay connected with your loved ones.
+        Stay connected with your loved ones through simple messages, voice notes and daily wellbeing check-ins.
       </Text>
 
       <TouchableOpacity
         style={styles.loginButton}
         onPress={() => navigation.navigate("Login")}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Login"
+        accessibilityHint="Sign in to your CareBridge account"
       >
-        <Text style={styles.loginText}>Login</Text>
+        <Text style={styles.loginText}>
+          Login
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.signupButton}
         onPress={() => navigation.navigate("Signup")}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Create Account"
+        accessibilityHint="Create a new CareBridge account"
       >
-        <Text style={styles.signupText}>Create Account</Text>
+        <Text style={styles.signupText}>
+          Create Account
+        </Text>
       </TouchableOpacity>
+
+      <Text style={styles.footer}>
+        Designed with accessibility and simplicity for older adults.
+      </Text>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
-    padding: 25,
+    paddingHorizontal: 25,
   },
 
   logo: {
-    fontSize: 70,
+    fontSize: 80,
     marginBottom: 20,
   },
 
   title: {
-    fontSize: 36,
+    fontSize: 38,
     fontWeight: "bold",
     color: "#2563EB",
   },
@@ -52,9 +84,10 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 20,
     textAlign: "center",
-    color: "#555",
-    marginTop: 12,
+    color: "#4B5563",
+    marginTop: 15,
     marginBottom: 50,
+    lineHeight: 30,
   },
 
   loginButton: {
@@ -66,7 +99,7 @@ const styles = StyleSheet.create({
   },
 
   loginText: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 22,
     textAlign: "center",
     fontWeight: "bold",
@@ -86,4 +119,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
+
+  footer: {
+    marginTop: 40,
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+
 });

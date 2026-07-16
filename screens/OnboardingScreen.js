@@ -12,36 +12,44 @@ export default function OnboardingScreen({ navigation }) {
       emoji: "❤️",
       title: "Welcome to CareBridge",
       description:
-        "Stay connected with your loved ones through simple text messages and voice notes.",
+        "CareBridge helps you stay connected with your family through simple text messages and voice notes.",
     },
     {
       emoji: "🎤",
-      title: "Voice Notes",
+      title: "Easy Voice Notes",
       description:
-        "Send and receive voice messages easily with one tap.",
+        "Tap the microphone to record a voice message. Your family can listen anytime.",
     },
     {
       emoji: "🔔",
-      title: "Daily Check-ins",
+      title: "Daily Check-In",
       description:
-        "Receive gentle reminders to check in with your family every day.",
+        "Complete a quick daily check-in so your loved ones know how you're feeling.",
     },
   ];
 
   const [page, setPage] = useState(0);
 
-  const nextPage = () => {
+  function nextPage() {
     if (page < pages.length - 1) {
       setPage(page + 1);
     } else {
-      navigation.navigate("Home");
+      navigation.replace("Home");
     }
-  };
+  }
+
+  function skipOnboarding() {
+    navigation.replace("Home");
+  }
 
   return (
     <View style={styles.container}>
 
-      <Text style={styles.emoji}>
+      <Text
+        style={styles.emoji}
+        accessible={true}
+        accessibilityLabel={pages[page].title}
+      >
         {pages[page].emoji}
       </Text>
 
@@ -53,7 +61,11 @@ export default function OnboardingScreen({ navigation }) {
         {pages[page].description}
       </Text>
 
-      <View style={styles.dots}>
+      <View
+        style={styles.dots}
+        accessible={true}
+        accessibilityLabel={`Step ${page + 1} of ${pages.length}`}
+      >
         {pages.map((_, index) => (
           <View
             key={index}
@@ -68,14 +80,28 @@ export default function OnboardingScreen({ navigation }) {
       <TouchableOpacity
         style={styles.button}
         onPress={nextPage}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={
+          page === pages.length - 1
+            ? "Get Started"
+            : "Next"
+        }
+        accessibilityHint="Move to the next onboarding page"
       >
         <Text style={styles.buttonText}>
-          {page === pages.length - 1 ? "Get Started" : "Next"}
+          {page === pages.length - 1
+            ? "Get Started"
+            : "Next"}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => navigation.navigate("Home")}
+        onPress={skipOnboarding}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel="Skip onboarding"
+        accessibilityHint="Go directly to the Home screen"
       >
         <Text style={styles.skip}>
           Skip
@@ -90,15 +116,15 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
-    padding: 30,
+    paddingHorizontal: 30,
   },
 
   emoji: {
-    fontSize: 80,
-    marginBottom: 20,
+    fontSize: 90,
+    marginBottom: 25,
   },
 
   title: {
@@ -112,9 +138,9 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 20,
     textAlign: "center",
-    color: "#555",
-    lineHeight: 30,
-    marginBottom: 40,
+    color: "#4B5563",
+    lineHeight: 32,
+    marginBottom: 45,
   },
 
   dots: {
@@ -123,11 +149,11 @@ const styles = StyleSheet.create({
   },
 
   dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: "#D1D5DB",
-    marginHorizontal: 5,
+    marginHorizontal: 6,
   },
 
   activeDot: {
@@ -143,14 +169,14 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
   },
 
   skip: {
-    fontSize: 18,
+    fontSize: 20,
     color: "#2563EB",
     fontWeight: "bold",
   },
