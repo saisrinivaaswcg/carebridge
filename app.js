@@ -6,7 +6,7 @@ const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth.routes');
 const seniorsRoutes = require('./routes/seniors.routes');
 const consentsRoutes = require('./routes/consents.routes');
-
+const alertsRoutes = require('./routes/alerts.routes');
 const app = express();
 
 app.use(helmet());
@@ -18,7 +18,7 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/seniors', seniorsRoutes);
-// app.use('/api/v1/alerts', alertsRoutes);   // TODO
+app.use('/api/v1/alerts', alertsRoutes);   
 // app.use('/api/v1/users', usersRoutes);     // TODO
 
 // 404
