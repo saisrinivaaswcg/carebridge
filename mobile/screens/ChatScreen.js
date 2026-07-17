@@ -20,24 +20,26 @@ import {
 import { uploadVoiceNote } from "../services/voiceUpload";
 import { getUser } from "../services/auth";
 import { SERVER_URL } from "../config";
-const SENIOR_ID = "fe1e3b58-2e1a-475c-b088-bcaa5291eeb6";
 
+const SENIOR_ID = "fe1e3b58-2e1a-475c-b088-bcaa5291eeb6";
 
 export default function ChatScreen({ navigation }) {
   const flatListRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [senderName, setSenderName] = useState("user");
+  const senderRef = useRef("user");
 
   useEffect(() => {
     connectSocket();
     joinRoom(SENIOR_ID);
 
-    // get real logged in user
     getUser().then((user) => {
-      if (user) setSenderName(user.full_name || user.id);
+      if (user) {
+        setSenderName(user.full_name || user.id);
+        senderRef.current = user.full_name || user.id;
+      }
     });
 
-    // load message history from your server
     fetch(`${SERVER_URL}/messages?seniorId=${SENIOR_ID}`)
       .then((res) => res.json())
       .then((data) => {
@@ -47,8 +49,8 @@ export default function ChatScreen({ navigation }) {
       })
       .catch((err) => console.log("Failed to load messages:", err));
 
-    // listen for incoming real-time messages
     onReceiveMessage((data) => {
+      if (data.sender === senderRef.current) return;
       const incoming = {
         id: Date.now().toString(),
         sender: data.sender,
