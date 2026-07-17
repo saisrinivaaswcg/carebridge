@@ -1,39 +1,74 @@
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-const authRoutes = require('./routes/auth.routes');
-const seniorsRoutes = require('./routes/seniors.routes');
-const consentsRoutes = require('./routes/consents.routes');
-const alertsRoutes = require('./routes/alerts.routes');
-const app = express();
+import WelcomeScreen from "./screens/WelcomeScreen";
+import LoginScreen from "./screens/LoginScreen";
+import SignupScreen from "./screens/SignupScreen";
+import OnboardingScreen from "./screens/OnboardingScreen";
+import HomeScreen from "./screens/HomeScreen";
+import ChatScreen from "./screens/ChatScreen";
+import ProfileScreen from "./screens/ProfileScreen";
+import LanguageScreen from "./screens/LanguageScreen";
+import CheckInScreen from "./screens/CheckInScreen";
 
-app.use(helmet());
-app.use(cors()); // TODO: lock down to mobile/dashboard origins before prod
-app.use(express.json({ limit: '1mb' }));
-app.use(rateLimit({ windowMs: 60 * 1000, max: 120 })); // generous global default; tighter limits on auth routes
+const Stack = createNativeStackNavigator();
 
-app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Welcome"
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen
+          name="Welcome"
+          component={WelcomeScreen}
+        />
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/seniors', seniorsRoutes);
-app.use('/api/v1/alerts', alertsRoutes);   
-// app.use('/api/v1/users', usersRoutes);     // TODO
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+        />
 
-// 404
-app.use((req, res) => {
-  res.status(404).json({ error: { code: 'NOT_FOUND', message: 'No such route' } });
-});
+        <Stack.Screen
+          name="Signup"
+          component={SignupScreen}
+        />
 
-// Central error handler — keep every route's catch block calling next(err)
-// rather than formatting errors inline, so this is the one place that changes.
-app.use((err, req, res, next) => {
-  if (err.name === 'ZodError') {
-    return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: err.errors } });
-  }
-  console.error(err);
-  res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } });
-});
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+        />
 
-module.exports = app;
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+        />
+
+        <Stack.Screen
+          name="Chat"
+          component={ChatScreen}
+        />
+
+        <Stack.Screen
+          name="Profile"
+          component={ProfileScreen}
+        />
+
+        <Stack.Screen
+          name="Language"
+          component={LanguageScreen}
+        />
+
+        <Stack.Screen
+          name="CheckIn"
+          component={CheckInScreen}
+        />
+
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}

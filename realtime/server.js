@@ -167,7 +167,7 @@ io.on("connection", (socket) => {
     // broadcast to everyone in the room
     io.to(data.room).emit("receive_message", data);
     // analyse with ML in background
-   analyseWithML(data.room, data.text).then(async (result) => {
+    analyseWithML(data.room, data.text).then(async (result) => {
     if (result && result.alert_tier && result.alert_tier !== "none" && result.alert_tier !== "low") {
         console.log("Alert triggered for senior:", data.room, "tier:", result.alert_tier);
 
