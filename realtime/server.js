@@ -165,7 +165,7 @@ io.on("connection", (socket) => {
     // save to Person 3's DB
     await saveMessageToKavi(data.room, "inbound", data.text);
     // broadcast to everyone in the room
-    io.to(data.room).emit("receive_message", data);
+    socket.broadcast.to(data.room).emit("receive_message", data);
     // analyse with ML in background
     analyseWithML(data.room, data.text).then(async (result) => {
     if (result && result.alert_tier && result.alert_tier !== "none" && result.alert_tier !== "low") {
