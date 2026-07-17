@@ -1,5 +1,5 @@
-const API_BASE_URL = "http://YOUR_BACKEND_IP:3000/api/v1";
-// Example:
+import { API_BASE_URL } from "../config";
+// Previous design was:
 // const API_BASE_URL = "http://192.168.1.15:3000/api/v1";
 
 async function request(endpoint, options = {}) {

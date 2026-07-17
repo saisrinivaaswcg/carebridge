@@ -18,20 +18,24 @@ import {
   offReceiveMessage,
 } from "../services/socket";
 import { uploadVoiceNote } from "../services/voiceUpload";
-
-// TODO: replace with real values from auth once Person 3's login is wired up
+import { getUser } from "../services/auth";
+import { SERVER_URL } from "../config";
 const SENIOR_ID = "fe1e3b58-2e1a-475c-b088-bcaa5291eeb6";
-const SENDER_ID = "test-user";
-const SERVER_URL = "http://192.168.1.103:3000";
+
 
 export default function ChatScreen({ navigation }) {
   const flatListRef = useRef(null);
   const [messages, setMessages] = useState([]);
+  const [senderName, setSenderName] = useState("user");
 
   useEffect(() => {
-    // connect to your Socket.io server and join the family room
     connectSocket();
     joinRoom(SENIOR_ID);
+
+    // get real logged in user
+    getUser().then((user) => {
+      if (user) setSenderName(user.full_name || user.id);
+    });
 
     // load message history from your server
     fetch(`${SERVER_URL}/messages?seniorId=${SENIOR_ID}`)
@@ -58,7 +62,6 @@ export default function ChatScreen({ navigation }) {
       setMessages((prev) => [...prev, incoming]);
     });
 
-    // cleanup when leaving the screen
     return () => {
       offReceiveMessage();
     };
@@ -74,36 +77,32 @@ export default function ChatScreen({ navigation }) {
   function sendMessage(text) {
     const newMessage = {
       id: Date.now().toString(),
-      sender: "You",
+      sender: senderName,
       type: "text",
       text,
       time: currentTime(),
     };
-    // show immediately on screen (optimistic update)
     setMessages((prev) => [...prev, newMessage]);
-    // send to your Socket.io server
-    socketSendMessage(SENIOR_ID, SENDER_ID, text);
+    socketSendMessage(SENIOR_ID, senderName, text);
   }
 
   async function addVoiceMessage(uri) {
-    // show immediately on screen
     const newMessage = {
       id: Date.now().toString(),
-      sender: "You",
+      sender: senderName,
       type: "voice",
       uri,
       time: currentTime(),
     };
     setMessages((prev) => [...prev, newMessage]);
 
-    // upload to S3 in the background
     const result = await uploadVoiceNote(uri, SENIOR_ID);
     if (result.success) {
       console.log("Voice note uploaded to S3:", result.key);
     } else {
       console.log("Voice upload failed:", result.error);
     }
-}
+  }
 
   return (
     <SafeAreaView style={styles.container}>
