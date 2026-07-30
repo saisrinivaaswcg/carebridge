@@ -1,3 +1,12 @@
 __pycache__/
 *.pyc
 observations.json
+
+# Environment variables
+.env
+
+# Whisper model cache (optional)
+.whisper/
+
+# macOS metadata (optional)
+.DS_Store
