@@ -144,6 +144,20 @@ app.post("/voice/complete", async (req, res) => {
     const { seniorId, key, durationSec } = req.body;
     const saved = await saveVoiceNoteToKavi(seniorId, key, durationSec);
     res.json(saved);
+
+    // analyse voice note with MERaLiON in background
+    const playbackUrl = await getPlaybackUrl(key);
+    analyseVoiceWithML(seniorId, playbackUrl).then(async (result) => {
+        if (result && result.alert_tier && result.alert_tier !== "none" && result.alert_tier !== "low") {
+            console.log("Voice alert triggered for senior:", seniorId, "tier:", result.alert_tier);
+            await createAlert(
+                seniorId,
+                "voice_pattern_shift",
+                result.alert_tier,
+                `Voice communication pattern shifted from baseline. Transcript: "${result.transcript}". Risk score: ${result.risk_score}.`
+            );
+        }
+    });
 });
 
 app.get("/voice/playback-url", async (req, res) => {
