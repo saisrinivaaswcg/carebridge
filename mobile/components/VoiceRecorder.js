@@ -71,7 +71,7 @@ export default function VoiceRecorder({
       const response = await uploadVoiceNote({
         uri,
         token,
-        seniorId: user.id,
+        seniorId: "fe1e3b58-2e1a-475c-b088-bcaa5291eeb6",
       });
 
       if (onRecordingFinished) {

@@ -1,6 +1,6 @@
 import { SERVER_URL } from "../config";
 
-export async function uploadVoiceNote(localUri, seniorId) {
+export async function uploadVoiceNote({ uri: localUri, seniorId }) {
   try {
     // Step 1 - get presigned upload URL from your server
     const urlResponse = await fetch(`${SERVER_URL}/voice/upload-url`, {
