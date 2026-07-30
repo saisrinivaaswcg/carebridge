@@ -85,6 +85,26 @@ async function analyseWithML(seniorId, transcript) {
         return null;
     }
 }
+// send voice note to ML service for analysis
+async function analyseVoiceWithML(seniorId, audioUrl) {
+    try {
+        const response = await fetch(`${process.env.ML_SERVICE_URL}/analyse_voice`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                user_id: seniorId,
+                audio_url: audioUrl,
+            }),
+        });
+        const result = await response.json();
+        console.log("Voice ML analysis result:", result);
+        return result;
+    } catch (error) {
+        console.error("Voice ML service call failed:", error);
+        return null;
+    }
+}
+
 // create alert in Person 3's database
 async function createAlert(seniorId, alertType, severity, description) {
     try {
