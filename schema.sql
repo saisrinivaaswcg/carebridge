@@ -292,3 +292,20 @@ CREATE TABLE access_audit_log (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_access_audit_senior ON access_audit_log(senior_id, created_at DESC);
+
+-- Observations table for drift trend tracking
+CREATE TABLE IF NOT EXISTS observations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    senior_id UUID NOT NULL REFERENCES seniors(id),
+    observed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    word_count INTEGER,
+    lexical_diversity NUMERIC(5,3),
+    sentiment_score NUMERIC(5,3),
+    risk_score NUMERIC(5,2),
+    alert_tier VARCHAR(10),
+    message_count INTEGER DEFAULT 1,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_observations_senior_id ON observations(senior_id);
+CREATE INDEX IF NOT EXISTS idx_observations_observed_at ON observations(observed_at);
