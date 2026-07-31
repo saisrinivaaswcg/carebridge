@@ -1,34 +1,63 @@
-import { mockAlerts } from '../data/mockAlerts'
-import { mockSeniors } from '../data/mockSeniors'
+import { useState, useEffect } from 'react'
+import { getAlerts, getSeniors } from '../utils/api'
 
 const tierStyle = {
   critical: { bg: 'bg-red-50', border: 'border-red-500', badge: 'bg-red-100 text-red-600', label: 'CRITICAL', icon: '⚠️' },
+  high: { bg: 'bg-red-50', border: 'border-red-500', badge: 'bg-red-100 text-red-600', label: 'CRITICAL', icon: '⚠️' },
   watch: { bg: 'bg-amber-50', border: 'border-amber-400', badge: 'bg-amber-100 text-amber-700', label: 'WATCH', icon: '↘' },
+  medium: { bg: 'bg-amber-50', border: 'border-amber-400', badge: 'bg-amber-100 text-amber-700', label: 'WATCH', icon: '↘' },
+  low: { bg: 'bg-gray-50', border: 'border-gray-300', badge: 'bg-gray-100 text-gray-600', label: 'LOW', icon: 'ℹ️' },
 }
 
 function AlertFeed({ setCurrentPage, setSelectedSenior }) {
+  const [alerts, setAlerts] = useState([])
+  const [seniors, setSeniors] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [alertsData, seniorsData] = await Promise.all([
+          getAlerts(),
+          getSeniors()
+        ])
+        setAlerts(alertsData.data || [])
+        setSeniors(seniorsData.data || [])
+      } catch (err) {
+        console.error('Failed to fetch alerts:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+    // refresh every 10 seconds
+    const interval = setInterval(fetchData, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const getSeniorName = (seniorId) => {
+    const senior = seniors.find(s => s.id === seniorId)
+    return senior?.full_name || 'Unknown Senior'
+  }
+
   const openProfile = (seniorId) => {
-    const senior = mockSeniors.find(s => s.id === seniorId)
+    const senior = seniors.find(s => s.id === seniorId)
     if (senior) {
       setSelectedSenior(senior)
       setCurrentPage('profile')
     }
   }
 
-  const handleAction = (alertItem) => {
-    const senior = mockSeniors.find(s => s.id === alertItem.seniorId)
-    if (alertItem.action === 'Call Family') {
-      if (senior?.contact) {
-        window.alert(`Calling family contact:\n${senior.contact}`)
-      } else {
-        window.alert('No family contact on file for this senior.')
-      }
-    } else if (alertItem.action === 'Schedule Visit') {
-      window.alert(`Visit scheduling request sent for ${senior?.name || alertItem.name}.`)
-    }
+  const formatTime = (dateStr) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMins = Math.floor((now - date) / 60000)
+    if (diffMins < 60) return `${diffMins} min ago`
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)} hours ago`
+    return `${Math.floor(diffMins / 1440)} days ago`
   }
 
-
+  if (loading) return <div className="p-8 text-gray-500">Loading alerts...</div>
 
   return (
     <div className="p-8">
@@ -50,37 +79,29 @@ function AlertFeed({ setCurrentPage, setSelectedSenior }) {
       </div>
 
       <div className="mt-6 space-y-4">
-        {mockAlerts.map((a) => {
-          const style = tierStyle[a.tier]
+        {alerts.length === 0 && (
+          <div className="text-gray-400 text-center py-8">No alerts at this time.</div>
+        )}
+        {alerts.map((a) => {
+          const tier = a.severity?.toLowerCase() || 'low'
+          const style = tierStyle[tier] || tierStyle.low
           return (
             <div key={a.id} className={`border-l-4 ${style.border} ${style.bg} rounded-r-xl p-5`}>
               <div className="flex items-center gap-2 mb-2">
                 <span>{style.icon}</span>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded ${style.badge}`}>{style.label}</span>
-                <span className="text-gray-700 font-medium">• {a.name}</span>
-                <span className="text-gray-400 text-sm ml-auto">{a.time}</span>
+                <span className="text-gray-700 font-medium">• {getSeniorName(a.senior_id)}</span>
+                <span className="text-gray-400 text-sm ml-auto">{formatTime(a.detected_at)}</span>
               </div>
-              <p className="text-gray-700">{a.message}</p>
-              {/* <button
-                onClick={() => openProfile(a.seniorId)}
-                className="text-teal-700 font-medium text-sm mt-2 hover:underline"
-              >
-                {a.action} →
-              </button> */}
+              <p className="text-gray-700">{a.description}</p>
               <div className="flex items-center gap-4 mt-2">
-  <button
-    onClick={() => handleAction(a)}
-    className="text-teal-700 font-medium text-sm hover:underline"
-  >
-    {a.action} →
-  </button>
-  <button
-    onClick={() => openProfile(a.seniorId)}
-    className="text-gray-500 text-sm hover:underline"
-  >
-    View Profile
-  </button>
-</div>
+                <button
+                  onClick={() => openProfile(a.senior_id)}
+                  className="text-gray-500 text-sm hover:underline"
+                >
+                  View Profile
+                </button>
+              </div>
             </div>
           )
         })}
