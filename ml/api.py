@@ -10,6 +10,7 @@ from sentiment import analyse_sentiment
 from driftmulti import calculate_risk
 from storage import save_observation, get_user_history, get_observation_count
 from acoustic import extract_acoustic_features
+from embeddings import get_wavlm_embedding
 
 app = FastAPI()
 
@@ -65,8 +66,9 @@ def analyse_voice(data: VoiceInput):
             detail=f"Unable to download audio: {e}"
         )
 
-    # Step 2 - save OGG to temp file, convert to WAV for acoustic analysis
+    # Step 2 - save OGG to temp file, convert to WAV
     wav_path = None
+    wav_bytes = None
     try:
         with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as ogg_file:
             ogg_file.write(audio_response.content)
@@ -78,9 +80,14 @@ def analyse_voice(data: VoiceInput):
             check=True, capture_output=True
         )
         os.unlink(ogg_path)
+
+        with open(wav_path, "rb") as f:
+            wav_bytes = f.read()
+
     except Exception as e:
         print(f"Audio conversion failed: {e}")
         wav_path = None
+        wav_bytes = None
 
     # Step 3 - transcribe with MERaLiON
     transcript, engine = transcribe_audio(audio_response.content)
@@ -89,7 +96,7 @@ def analyse_voice(data: VoiceInput):
     features = extract_features(transcript)
     sentiment = analyse_sentiment(transcript)
 
-    # Step 5 - extract acoustic features if WAV is available
+    # Step 5 - extract acoustic features
     acoustic = {}
     if wav_path and os.path.exists(wav_path):
         try:
@@ -102,20 +109,29 @@ def analyse_voice(data: VoiceInput):
             except:
                 pass
 
-    # Step 6 - combine all features
+    # Step 6 - get WavLM embedding
+    embedding = None
+    if wav_bytes:
+        try:
+            embedding = get_wavlm_embedding(wav_bytes)
+            if embedding:
+                print(f"WavLM embedding generated: {len(embedding)} dimensions")
+        except Exception as e:
+            print(f"WavLM embedding failed: {e}")
+
+    # Step 7 - combine all features
     combined_features = {
         "word_count": features["word_count"],
         "lexical_diversity": features["lexical_diversity"],
         "sentiment_score": sentiment["sentiment_score"],
     }
 
-    # add acoustic features if available
     if acoustic:
         combined_features["pause_ratio"] = acoustic.get("pause_ratio", 0)
         combined_features["speech_rate"] = acoustic.get("speech_rate", 0)
         combined_features["pitch_variance"] = acoustic.get("pitch_variance", 0)
 
-    # Step 7 - save and calculate drift
+    # Step 8 - save and calculate drift
     save_observation(data.user_id, combined_features)
     history = get_user_history(data.user_id)
     observation_count = get_observation_count(data.user_id)
@@ -128,6 +144,7 @@ def analyse_voice(data: VoiceInput):
         "transcription_engine": engine,
         "features": combined_features,
         "acoustic_features": acoustic,
+        "embedding_dimensions": len(embedding) if embedding else 0,
         "sentiment_label": sentiment["sentiment_label"],
         "risk_score": risk_result["risk_score"],
         "alert_tier": risk_result["alert_tier"],
